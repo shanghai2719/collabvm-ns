@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Panel</title>
+
+  <!-- Keep Bootstrap 3 + jQuery for admin.min.js compatibility -->
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+  <link rel="stylesheet"
+        href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+        integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">
+
+  <!-- Your main stylesheet (remade earlier) -->
+  <link rel="stylesheet" href="../main.css">
+
+  <style>
+    body { padding-bottom: 24px; }
+
+    /* clickable rows */
+    table.table-hover>tbody>tr { cursor: pointer; }
+
+    /* close "x" button */
+    .x-button {
+      color: #777;
+      font: 16px Arial,sans-serif;
+      text-decoration: none;
+      text-shadow: 0 1px 0 #fff;
+      float: right;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    #ban-cmd-box { width: 100%; }
+
+    /* make inline-form items wrap nicely */
+    .form-inline .form-control { width: auto; }
+    .form-inline .form-group { margin-right: 8px; margin-bottom: 8px; }
+    .panel-body .form-group:last-child { margin-bottom: 0; }
+
+    /* VM settings panel spacing */
+    #vm-settings .panel-body .form-group { margin-bottom: 12px; }
+
+    /* nicer fixed loading overlay */
+    #loading {
+      text-align: center;
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      left: 0; top: 0;
+      display: none;
+      z-index: 2000;
+      background: rgba(0,0,0,0.35);
+      color: #fff;
+      font-weight: 600;
+      padding-top: 20vh;
+    }
+
+    #loading .spinner-wrap {
+      width: 10%;
+      height: 10vw;
+      min-width: 80px;
+      min-height: 80px;
+      position: relative;
+      display: inline-block;
+      margin-top: 12px;
+    }
+
+    /* responsive columns stacking */
+    @media (max-width: 991px) {
+      .col-lg-6 { margin-top: 12px; }
+    }
+  </style>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+          integrity="sha384-xBuQ/xzmlsLoJpyjoggmTEz8OWUFM0/RC5BsqQBDX2v5cMvDHcMakNTNrHIW2I5f"
+          crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+          integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+          crossorigin="anonymous"></script>
+
+  <!-- Your admin logic -->
+  <script src="admin.min.js"></script>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-default navbar-static-top">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed"
+                data-toggle="collapse" data-target="#my-navbar"
+                aria-expanded="false" aria-controls="my-navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <div class="navbar-brand" style="cursor:default;">Nt Collab</div>
+      </div>
+
+      <div class="collapse navbar-collapse" id="my-navbar">
+        <ul class="nav navbar-nav">
+          <li><a href="https://flopa2.qzz.io" target="_blank" rel="noreferrer">Flopa2</a></li>
+          <li><a href="http://t.me/vinachato" target="_blank" rel="noreferrer">Nt Hub</a></li>
+          <li><a href="http://t.me/vinachato" target="_blank" rel="noreferrer">Chat Groups</a></li>
+          <li><a href="http://t.me/vinachato" target="_blank" rel="noreferrer">telegram Chat</a></li>
+          <li><a href="https://flopa2.qzz.io" target="_blank" rel="noreferrer">Ns Site</a></li>
+          <li><a href="http://t.me/ntxphub" target="_blank" rel="noreferrer">Tg Hub</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid">
+    <div class="page-header">
+      <h1>
+        <small><span class="glyphicon glyphicon-wrench" aria-hidden="true"></span></small>
+        Admin Panel
+      </h1>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading">
+      Loading...
+      <div class="spinner-wrap">
+        <div class="sk-fading-circle">
+          <div class="sk-circle1 sk-circle"></div>
+          <div class="sk-circle2 sk-circle"></div>
+          <div class="sk-circle3 sk-circle"></div>
+          <div class="sk-circle4 sk-circle"></div>
+          <div class="sk-circle5 sk-circle"></div>
+          <div class="sk-circle6 sk-circle"></div>
+          <div class="sk-circle7 sk-circle"></div>
+          <div class="sk-circle8 sk-circle"></div>
+          <div class="sk-circle9 sk-circle"></div>
+          <div class="sk-circle10 sk-circle"></div>
+          <div class="sk-circle11 sk-circle"></div>
+          <div class="sk-circle12 sk-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- AUTH -->
+      <div id="password-input" class="col-md-4 col-md-offset-4" style="text-align:center;display:none;">
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">Authentication</h3>
+          </div>
+          <div class="panel-body">
+            <div class="form-inline form-group">
+              <label for="master-pwd">Password:</label>
+              <input type="password" class="form-control" name="master-pwd" id="master-pwd" />
+              <button class="btn btn-default" id="pwd-submit" type="button">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="col-md-12" id="alert-box"></div>
+
+      <!-- LEFT COLUMN -->
+      <div class="col-lg-6">
+        <div id="server-settings" style="display:none;">
+
+          <!-- Server Configuration -->
+          <div class="panel panel-default">
+            <div class="panel-heading">Server Configuration</div>
+            <div class="panel-body">
+
+              <div class="form-group form-inline">
+                <label for="chat-rate-count-box">
+                  <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+                  Chat Message Rate:
+                </label>
+                <input type="number" class="form-control" name="chat-rate-count" id="chat-rate-count-box">
+                messages per
+                <input type="number" class="form-control" name="chat-rate-time" id="chat-rate-time-box">
+                second(s)
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="chat-mute-box">Chat Mute Time:</label>
+                <input type="number" class="form-control" name="chat-mute-time" id="chat-mute-box">
+                seconds
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="max-cons-box">Max Connections From One IP:</label>
+                <input type="number" class="form-control" name="max-cons" id="max-cons-box">
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="max-upload-box">Upload Timeout:</label>
+                <input type="number" class="form-control" name="max-upload-time" id="max-upload-box">
+                seconds
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="ban-cmd-box">Ban IP Command:</label>
+                <input type="text" class="form-control" name="ban-cmd" id="ban-cmd-box"
+                       placeholder="$IP = user's IP, $NAME = user's name">
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="jpeg-quality-box">JPEG Compression Quality:</label>
+                <input type="number" class="form-control" name="jpeg-quality" id="jpeg-quality-box">
+              </div>
+
+              <div class="form-group form-inline">
+                <label for="blacklisted-usernames-box">Blacklisted usernames (separated by ;):</label>
+                <input type="text" class="form-control" name="blacklisted-usernames" id="blacklisted-usernames-box">
+              </div>
+
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="mod-enabled" id="mod-enabled-chkbox">
+                  Enable Moderator Rank
+                </label>
+              </div>
+
+              <!-- Moderator permissions -->
+              <div class="form-group" id="mod-perms">
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-restore"> Restore Snapshot</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-reboot"> Reboot VM</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-ban"> Ban Users</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-kick"> Kick Users</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-forcevotes"> Force Votes</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-mute"> Mute Users</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-endturns"> Bypass & End Turns</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-renameuser"> Rename Users</label></div>
+                <div class="checkbox"><label><input type="checkbox" name="mod-perm-copyip"> Copy IPs</label></div>
+              </div>
+
+              <button class="btn btn-default" type="button" id="save-server-settings">
+                <span class="glyphicon glyphicon-floppy-saved" aria-hidden="true"></span>
+                Save Server Settings
+              </button>
+            </div>
+          </div>
+
+          <!-- Server Passwords -->
+          <div class="panel panel-default">
+            <div class="panel-heading">Server Passwords</div>
+            <div class="panel-body">
+
+              <label for="chng-pwd-box">
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                Change Master Password:
+              </label>
+
+              <div class="form-group input-group">
+                <span class="input-group-addon">
+                  <input type="checkbox" id="chng-pwd-chkbox" aria-label="Enable master password change">
+                </span>
+                <input type="password" class="form-control" name="password" id="chng-pwd-box" disabled="disabled">
+              </div>
+              <button class="btn btn-default" id="chng-pwd-btn" type="button" disabled="disabled">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                Change Password
+              </button>
+
+              <hr>
+
+              <label for="chng-modpwd-box">
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                Change Moderator Password:
+              </label>
+
+              <div class="form-group input-group">
+                <span class="input-group-addon">
+                  <input type="checkbox" id="chng-modpwd-chkbox" aria-label="Enable moderator password change">
+                </span>
+                <input type="password" class="form-control" name="password" id="chng-modpwd-box" disabled="disabled">
+              </div>
+
+              <button class="btn btn-default" id="chng-modpwd-btn" type="button" disabled="disabled">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                Change Password
+              </button>
+            </div>
+          </div>
+
+          <!-- Virtual Machines list -->
+          <div class="panel panel-default">
+            <div class="panel-heading">Virtual Machines</div>
+
+            <table class="table table-hover">
+              <thead>
+                <tr><th>Name</th><th>Status</th></tr>
+              </thead>
+              <tbody id="vm-list"></tbody>
+            </table>
+
+            <div class="panel-body text-right">
+              <button class="btn btn-default" type="button" id="start-vm-btn" disabled="disabled">
+                <span class="glyphicon glyphicon-play" aria-hidden="true"></span> Start
+              </button>
+              <button class="btn btn-default" type="button" id="stop-vm-btn" disabled="disabled">
+                <span class="glyphicon glyphicon-stop" aria-hidden="true"></span> Stop
+              </button>
+              <button class="btn btn-default" type="button" id="restart-vm-btn" disabled="disabled">
+                <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Restart
+              </button>
+
+              <div class="btn-group" id="vm-action-dropdown" data-no-dropdown>
+                <button class="btn btn-default dropdown-toggle" type="button"
+                        id="vm-action-btn" data-toggle="dropdown" disabled="disabled">
+                  VM Action <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="vm-action-btn">
+                  <li role="presentation"><a role="menuitem" href="#" data-value="RestoreVM">Restore Snapshot</a></li>
+                  <li role="presentation"><a role="menuitem" href="#" data-value="RebootVM">Reboot</a></li>
+                  <li role="presentation"><a role="menuitem" href="#" data-value="ResetVM">Reset</a></li>
+                </ul>
+              </div>
+
+              <button class="btn btn-default" type="button" id="settings-vm-btn" disabled="disabled">
+                <span class="glyphicon glyphicon-cog" aria-hidden="true"></span> Change Settings
+              </button>
+              <button class="btn btn-default" type="button" id="new-vm-btn">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> New VM
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-lg-6">
+        <div class="panel panel-default" style="display:none" id="vm-settings">
+          <div class="panel-heading">
+            <span id="vm-panel-heading"></span>
+            <span class="x-button" id="vm-x-btn" aria-label="Close">&times;</span>
+          </div>
+
+          <div class="panel-body">
+            <div class="checkbox">
+              <label><input type="checkbox" name="vm-auto-start"> Auto Start</label>
+              <p class="help-block">start the VM automatically</p>
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-name">URL Name:</label>
+              <input type="text" class="form-control" name="vm-name" id="vm-name" placeholder="name in URL">
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-display-name">Display Name:</label>
+              <input type="text" class="form-control" name="vm-display-name" id="vm-display-name" placeholder="display name of the VM">
+            </div>
+
+            <p class="help-block">Each VM must have a unique VNC port (and QMP port for Windows users)</p>
+
+            <div class="form-group form-inline">
+              <label for="vm-vnc-address">VNC Address:</label>
+              <input type="text" class="form-control" name="vm-vnc-address" id="vm-vnc-address">
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-vnc-port">VNC Port:</label>
+              <input type="number" class="form-control" name="vm-vnc-port" id="vm-vnc-port">
+              <span class="help-block" style="display:inline-block;margin-left:6px;">must be at least 5900</span>
+            </div>
+
+            <hr>
+
+            <div class="form-group">
+              <label>QMP Socket Type:</label>
+              <div class="btn-group">
+                <button class="btn btn-default dropdown-toggle" type="button"
+                        name="vm-qmp-socket-type" id="vm-qmp-socket-type-dropdown"
+                        data-toggle="dropdown" data-value="local">
+                  Local <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="vm-qmp-socket-type-dropdown">
+                  <li><a href="#" data-value="tcp">TCP</a></li>
+                  <li><a href="#" data-value="local">Local</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-qmp-address">QMP Address:</label>
+              <input type="text" class="form-control" name="vm-qmp-address" id="vm-qmp-address">
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-qmp-port">QMP Port:</label>
+              <input type="number" class="form-control" name="vm-qmp-port" id="vm-qmp-port">
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vm-max-attempts">Max Guacamole/QMP Connection Attempts:</label>
+              <input type="number" class="form-control" name="vm-max-attempts" id="vm-max-attempts">
+            </div>
+
+            <hr>
+
+            <div class="form-group">
+              <label>Hypervisor:</label>
+              <div class="btn-group">
+                <button class="btn btn-default dropdown-toggle" type="button"
+                        name="vm-hypervisor" id="vm-hypervisor-dropdown"
+                        data-toggle="dropdown" data-value="qemu">
+                  QEMU <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="vm-hypervisor-dropdown">
+                  <li><a href="#" data-value="qemu">QEMU</a></li>
+                  <li class="disabled"><a href="#" data-value="virtualbox">VirtualBox</a></li>
+                  <li class="disabled"><a href="#" data-value="vmware">VMWare</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="vm-qemu-cmd">Start Command:</label>
+              <input type="text" class="form-control" name="vm-qemu-cmd" id="vm-qemu-cmd"
+                     placeholder="ex: qemu-system-x86_64 -hda /home/user/win-xp.img">
+            </div>
+
+            <div class="form-group">
+              <label>Snapshot Mode:</label>
+              <div class="btn-group">
+                <button class="btn btn-default dropdown-toggle" type="button"
+                        name="vm-qemu-snapshot-mode" id="vm-qemu-snapshot-mode"
+                        data-toggle="dropdown" data-value="off">
+                  Off <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="vm-qemu-snapshot-mode">
+                  <li><a href="#" data-value="off">Off</a></li>
+                  <li><a href="#" data-value="hd">Hard Drive Snapshots</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-restore-shutdown" id="restore-shutdown-chkbox" disabled="disabled">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span> Restore After Shutdown
+              </label>
+            </div>
+
+            <hr>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-turns-enabled" id="turns-enabled-chkbox">
+                <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Turns Enabled
+              </label>
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="turn-time-box">
+                <span class="glyphicon glyphicon-time" aria-hidden="true"></span> Turn Time:
+              </label>
+              <input type="number" class="form-control" name="vm-turn-time" id="turn-time-box" disabled="disabled">
+              seconds
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-votes-enabled" id="votes-enabled-chkbox">
+                <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Votes Enabled
+              </label>
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vote-time-box">
+                <span class="glyphicon glyphicon-time" aria-hidden="true"></span> Vote Time:
+              </label>
+              <input type="number" class="form-control" name="vm-vote-time" id="vote-time-box" disabled="disabled">
+              seconds
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="vote-cooldown-time-box">
+                <span class="glyphicon glyphicon-time" aria-hidden="true"></span> Vote Cooldown Time:
+              </label>
+              <input type="number" class="form-control" name="vm-vote-cooldown-time" id="vote-cooldown-time-box" disabled="disabled">
+              seconds
+            </div>
+
+            <hr>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-agent-enabled" id="agent-enabled-chkbox">
+                <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Agent Enabled
+              </label>
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-agent-use-virtio" id="agent-use-virtio-chkbox">
+                Use Virtio
+              </label>
+              <p class="help-block">requires virtio serial driver to be installed</p>
+            </div>
+
+            <div class="form-group form-inline" style="display:none">
+              <div class="form-group">
+                <label>Agent Socket Type:</label>
+                <div class="btn-group">
+                  <button class="btn btn-default dropdown-toggle" type="button"
+                          name="vm-agent-socket-type" id="agent-socket-type-dropdown"
+                          data-toggle="dropdown" data-value="local" disabled="disabled">
+                    Local <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="agent-socket-type-dropdown">
+                    <li><a href="#" data-value="tcp">TCP</a></li>
+                    <li><a href="#" data-value="local">Local</a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="agent-address-box">Agent Address:</label>
+                <input type="text" class="form-control" name="vm-agent-address" id="agent-address-box" disabled="disabled">
+              </div>
+              <div class="form-group">
+                <label for="agent-port">Agent Port:</label>
+                <input type="number" class="form-control" name="vm-agent-port" id="agent-port" disabled="disabled">
+              </div>
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-restore-heartbeat" id="restore-heartbeat-chkbox" disabled="disabled">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span> Restore After Heartbeat Timeout
+              </label>
+            </div>
+
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" name="vm-uploads-enabled" id="uploads-enabled-chkbox" disabled="disabled">
+                <span class="glyphicon glyphicon-file" aria-hidden="true"></span> Uploads Enabled
+              </label>
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="upload-cooldown-time-box">
+                <span class="glyphicon glyphicon-time" aria-hidden="true"></span> Upload Cooldown Time:
+              </label>
+              <input type="number" class="form-control" name="vm-upload-cooldown-time" id="upload-cooldown-time-box" disabled="disabled">
+              seconds
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="upload-max-size-box">Max File Size:</label>
+              <input type="number" class="form-control" name="vm-upload-max-size" id="upload-max-size-box" disabled="disabled">
+              bytes
+            </div>
+
+            <div class="form-group form-inline">
+              <label for="upload-max-filename-box">Max Filename Length:</label>
+              <input type="number" class="form-control" name="vm-upload-max-filename" id="upload-max-filename-box" disabled="disabled">
+            </div>
+
+            <div class="form-group text-right">
+              <button class="btn btn-default" type="button" id="delete-vm-btn">
+                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> Remove VM
+              </button>
+              <button class="btn btn-default" type="button" id="save-vm-btn">
+                <span class="glyphicon glyphicon-floppy-saved" aria-hidden="true"></span> Save VM Settings
+              </button>
+            </div>
+
+            <!-- QEMU MONITOR -->
+            <div style="display:none" id="qemu-monitor">
+              <br>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <span class="glyphicon glyphicon-console" aria-hidden="true"></span> QEMU Monitor
+                </div>
+                <div class="panel-body">
+                  <textarea class="form-control form-group"
+                            id="qemu-monitor-output"
+                            style="background-color:inherit;resize:vertical"
+                            rows="10" readonly="readonly"></textarea>
+
+                  <div class="input-group form-group">
+                    <input type="text" class="form-control" id="qemu-monitor-input">
+                    <span class="input-group-btn">
+                      <button class="btn btn-default" type="button" id="qemu-monitor-send">Send</button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
