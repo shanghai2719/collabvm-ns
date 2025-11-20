@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Control Collaborative Virtual Machines!" />
+  <meta property="og:url" content="http://computernewb.com/collab-vm" />
+  <meta property="og:description" content="Control a computer (Windows, Linux, MacOS, etc) from your browser, for 18 seconds at a time, with strangers!" />
+  <meta property="og:image" content="http://computernewb.com/starter.jpg" />
+
+  <title>Nt Collab</title>
+
+  <!-- Bootstrap 5 (no jQuery needed) -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+    crossorigin="anonymous"
+  />
+
+  <!-- Keep old stylesheet hook if you still use it -->
+  <link rel="stylesheet" href="main.css" />
+
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --panel: #111418;
+      --panel-2: #151a20;
+      --text: #e8eaed;
+      --muted: #9aa0a6;
+      --accent: #4c8dff;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --radius: 16px;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --panel-2: #f2f3f5;
+        --text: #0f172a;
+        --muted: #475569;
+        --accent: #2563eb;
+      }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    .navbar {
+      background: var(--panel) !important;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .navbar .nav-link, .navbar-brand, .navbar-text a {
+      color: var(--text) !important;
+      opacity: 0.9;
+    }
+    .navbar .nav-link:hover, .navbar-text a:hover {
+      opacity: 1;
+      color: var(--accent) !important;
+    }
+
+    #loading {
+      inset: 0;
+      z-index: 2000;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      place-items: center;
+      position: fixed;
+    }
+
+    .panelish {
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    #display-outer {
+      position: relative;
+      margin-top: .5rem;
+    }
+
+    #display {
+      width: 100%;
+      min-height: 360px;
+      background: #000;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+
+    #btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+      margin-top: .75rem;
+    }
+
+    #btns .btn {
+      border-radius: 999px;
+    }
+
+    #admin-btns .btn { margin-right: .25rem; margin-top: .25rem; }
+
+    #file-upload {
+      margin-top: .75rem;
+      display: none;
+      gap: .5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    #online-users {
+      max-height: 240px;
+      overflow-y: auto;
+    }
+
+    .message-pane-wrapper {
+      background: var(--panel);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.06);
+      padding: .5rem;
+      min-height: 260px;
+    }
+    .message-pane {
+      max-height: 240px;
+      overflow-y: auto;
+      padding: .25rem .25rem;
+    }
+
+    #chat-input:disabled {
+      background: var(--panel-2);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    .badge-soft {
+      background: var(--panel-2);
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Simple OSK container */
+    #kbd-outer {
+      display: none;
+      margin-top: .75rem;
+      padding: .75rem;
+    }
+    #kbd-keys {
+      min-height: 120px;
+    }
+
+    /* Vote alert positioning */
+    #vote-alert {
+      position: absolute;
+      top: .75rem;
+      left: .75rem;
+      right: .75rem;
+      z-index: 100;
+    }
+
+    /* Utility */
+    .muted { color: var(--muted); }
+  </style>
+</head>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container-fluid">
+      <span class="navbar-brand fw-semibold" style="cursor: default;">Nt Collab</span>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div id="topNav" class="collapse navbar-collapse">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="" id="home-btn">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="https://flopa2.qzz.io" target="_blank" rel="noreferrer">FLopa2</a></li>
+          <li class="nav-item"><a class="nav-link" href="http://t.me/ntxphub" target="_blank" rel="noreferrer">Tele Hub</a></li>
+          <li class="nav-item"><a class="nav-link" href="http://t.me/ntxphub" target="_blank" rel="noreferrer">NT-XP Hub</a></li>
+          <li class="nav-item"><a class="nav-link" href="http://t.me/vinachato" target="_blank" rel="noreferrer">Chat Group</a></li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="themesDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Themes
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="themesDrop">
+              <li><a class="dropdown-item" href="/">Light (default)</a></li>
+              <li><a class="dropdown-item" href="themes/classic">Classic</a></li>
+              <li><a class="dropdown-item" href="themes/dark-metro">Dark Metro</a></li>
+              <li><a class="dropdown-item" href="themes/embedded">Embedded</a></li>
+              <li><a class="dropdown-item" href="themes/experimental">Experimental</a></li>
+              <li><a class="dropdown-item" href="themes/material">Material</a></li>
+              <li><a class="dropdown-item" href="themes/metro">Metro</a></li>
+              <li><a class="dropdown-item" href="themes/royale">Royale</a></li>
+            </ul>
+          </li>
+        </ul>
+
+        <div class="navbar-text ms-auto">
+ 
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loading">
+    <div class="text-center panelish p-4">
+      <div class="spinner-border" role="status" aria-label="Loading"></div>
+      <div class="mt-3 fw-semibold">Loading…</div>
+      <div class="muted small">Connecting to VM / chat…</div>
+    </div>
+  </div>
+
+  <!-- USERNAME MODAL -->
+  <div class="modal fade" id="username-modal" tabindex="-1" aria-labelledby="username-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content panelish">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="username-modal-label">Change Username</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Enter a new username.
+          <div class="input-group mt-2">
+            <span class="input-group-text" id="username-addon">Username</span>
+            <input type="text" class="form-control" aria-describedby="username-addon" id="username-box" />
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="username-ok-btn">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VM MONITOR MODAL -->
+  <div class="modal fade" id="vm-monitor-modal" tabindex="-1" aria-labelledby="vm-monitor-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content panelish">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="vm-monitor-modal-label">VM Monitor</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <textarea
+            id="vm-monitor-output"
+            class="form-control mb-2"
+            style="background-color: inherit; resize: vertical;"
+            rows="10"
+            readonly
+          ></textarea>
+
+          <div class="input-group">
+            <input type="text" class="form-control" id="vm-monitor-input" placeholder="Type command…" />
+            <button class="btn btn-outline-secondary" type="button" id="vm-monitor-send">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTOTYPE MODAL -->
+  <div class="modal fade" id="autotype-modal" tabindex="-1" aria-labelledby="autotype-modal-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content panelish">
+        <div class="modal-header border-0">
+          <h5 class="modal-title" id="autotype-modal-label">Autotype</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Enter text to be typed:
+          <div class="input-group mt-2">
+            <span class="input-group-text" id="autotype-addon">Text</span>
+            <input type="text" class="form-control" aria-describedby="autotype-addon" id="autotype-box" />
+          </div>
+        </div>
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="autotype-ok-btn">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main class="container-fluid py-3">
+
+    <!-- WARNING -->
+    <section id="warning" class="panelish p-4 text-center" style="display:none;">
+      <div id="warn-text">
+        <h2 class="mb-2">Warning</h2>
+        <p class="mb-3">
+          As anyone can do anything on these PCs, this site may contain NSFW content.
+        </p>
+
+        <div class="form-check d-inline-flex align-items-center gap-2">
+          <input class="form-check-input" type="checkbox" id="no-warn-chkbox">
+          <label class="form-check-label" for="no-warn-chkbox">
+            Don't warn me again (I have accepted the
+            <a href="/collab-vm/rules" target="_blank" rel="noreferrer">Nt collab rule</a>)
+          </label>
+        </div>
+
+        <div class="mt-3">
+          <button class="btn btn-primary px-4" id="nsfw-cont-btn">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VM LIST -->
+    <section id="vm-list" style="display:none;"></section>
+
+    <!-- VM VIEW -->
+    <section id="vm-view" style="display:none;">
+      <header class="text-center mb-2">
+        <h2 class="h5 muted">
+          Click the screen to request a turn and control the computer!
+        </h2>
+      </header>
+
+      <div id="display-outer" class="panelish p-2">
+        <div id="display" aria-label="VM display area"></div>
+
+        <!-- Vote alert -->
+        <div class="alert alert-info d-flex align-items-center gap-2 mt-2" role="alert"
+             id="vote-alert" style="display:none;">
+          <div class="flex-grow-1">
+            Do you want to reset the VM?
+          </div>
+          <button type="button" class="btn btn-success btn-sm" id="vote-yes">Yes</button>
+          <button type="button" class="btn btn-danger btn-sm" id="vote-no">No</button>
+          <button type="button" class="btn-close ms-2" aria-label="Close" id="vote-dismiss"></button>
+        </div>
+
+        <!-- Vote stats -->
+        <div id="vote-stats" class="mt-2" style="display:none;">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <h3 class="h6 muted m-0">
+              Votes for VM Reset (<span id="vote-time"></span>)
+            </h3>
+            <div class="d-flex gap-2">
+              <button style="display:none;" type="button" class="btn btn-warning btn-sm" id="vote-pass">Pass Vote</button>
+              <button style="display:none;" type="button" class="btn btn-warning btn-sm" id="vote-cancel">Cancel Vote</button>
+            </div>
+          </div>
+
+          <div class="mt-2 d-flex gap-2">
+            <span class="badge text-bg-success">Yes: <span id="vote-label-yes"></span></span>
+            <span class="badge text-bg-danger">No: <span id="vote-label-no"></span></span>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div id="btns">
+          <button class="btn btn-outline-light" type="button" id="turn-btn">Take Turn</button>
+          <button style="display:none" class="btn btn-outline-light" type="button" id="end-turn-btn">End Turn</button>
+          <button class="btn btn-outline-light" type="button" id="osk-btn">Keyboard</button>
+
+          <button
+            class="btn btn-outline-light"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#username-modal"
+            id="username-btn"
+            disabled
+          >Change Username</button>
+
+          <button style="display:none" class="btn btn-outline-light" type="button" id="vote-btn">Vote for Reset</button>
+          <button style="display:none" class="btn btn-outline-light" type="button" id="pip-btn">Picture-in-Picture</button>
+
+          <button class="btn btn-outline-light" type="button" id="upload-options-btn">Upload File</button>
+
+          <!-- Admin buttons -->
+          <div id="admin-btns" style="display:none;">
+            <div class="w-100"></div>
+            <button style="display:none" class="btn btn-outline-warning btn-sm" type="button" id="restore-btn">Restore VM</button>
+            <button style="display:none" class="btn btn-outline-warning btn-sm" type="button" id="reboot-btn">Reboot VM</button>
+            <button style="display:none" class="btn btn-outline-warning btn-sm" type="button" id="clear-turn-queue-btn">Clear Turn Queue</button>
+            <button style="display:none" class="btn btn-outline-warning btn-sm" type="button" id="end-current-turn-btn">End Current Turn</button>
+            <button style="display:none" class="btn btn-outline-warning btn-sm" type="button" id="bypass-turn-btn">Bypass Turn</button>
+
+            <button
+              style="display:none"
+              class="btn btn-outline-warning btn-sm"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#vm-monitor-modal"
+              id="vm-monitor-btn"
+            >VM Monitor</button>
+
+            <button
+              style="display:none"
+              class="btn btn-outline-warning btn-sm"
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#autotype-modal"
+              id="autotype-btn"
+            >Autotype</button>
+          </div>
+
+          <!-- File upload -->
+          <div id="file-upload" class="form-inline">
+            <input class="form-control form-control-sm" id="upload-input" type="file" />
+            <div class="form-check ms-1">
+              <input class="form-check-input" type="checkbox" id="upload-run-chkbox" checked />
+              <label class="form-check-label" for="upload-run-chkbox">Run file</label>
+            </div>
+            <button class="btn btn-outline-light btn-sm" type="button" id="upload-btn" disabled>Upload</button>
+            <div id="upload-wait-time" class="muted small"></div>
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <small id="status" class="muted"></small>
+        </div>
+      </div>
+
+      <!-- On-screen keyboard -->
+      <div id="kbd-container">
+        <div class="panelish" id="kbd-outer">
+          <div id="kbd-keys"></div>
+        </div>
+      </div>
+
+      <!-- Users + Chat -->
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-lg-4">
+          <div class="panelish p-2">
+            <div class="px-2 py-1 muted">
+              Users Online: <span id="users-online" class="badge badge-soft"></span>
+            </div>
+            <div id="online-users" class="mt-1"></div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+          <div class="message-pane-wrapper">
+            <div id="chat-box" class="message-pane"></div>
+          </div>
+
+          <div class="input-group mt-2">
+            <span id="chat-user" class="input-group-text" style="display:none;"></span>
+            <input id="chat-input" type="text" class="form-control" aria-describedby="user-label" disabled placeholder="Type a message…" />
+            <button id="chat-send-btn" class="btn btn-outline-light" type="button" disabled>Send</button>
+            <button type="button" class="btn btn-outline-light" id="chat-sound-btn"
+                    title="Toggle chat sound. Not VM sound. The VM does not have sound.">
+              <span class="bi bi-volume-up" aria-hidden="true"></span>
+              🔊
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bootstrap bundle -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"
+  ></script>
+
+  <!-- Keep your old logic file -->
+  <script src="all.min.js"></script>
+
+  <script>
+    // Minimal helpers only. Avoid clashing with legacy all.min.js.
+    (function () {
+      // Toggle OSK panel if legacy code doesn't handle it
+      const oskBtn = document.getElementById("osk-btn");
+      const oskOuter = document.getElementById("kbd-outer");
+      if (oskBtn && oskOuter) {
+        oskBtn.addEventListener("click", () => {
+          // legacy might override display later; this is safe fallback
+          oskOuter.style.display = (oskOuter.style.display === "none" || !oskOuter.style.display) ? "block" : "none";
+        });
+      }
+
+      // Upload options toggle (fallback)
+      const uploadOptionsBtn = document.getElementById("upload-options-btn");
+      const fileUpload = document.getElementById("file-upload");
+      if (uploadOptionsBtn && fileUpload) {
+        uploadOptionsBtn.addEventListener("click", () => {
+          fileUpload.style.display = (fileUpload.style.display === "none" || !fileUpload.style.display) ? "flex" : "none";
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

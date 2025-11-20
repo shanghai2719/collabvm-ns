@@ -1,0 +1,424 @@
+/* =========================
+   CollabVM main.css (remade)
+   - Modern layout + dark/light
+   - Backwards compatible selectors
+   ========================= */
+
+/* Root + theme */
+:root{
+  --bg: #0b0d10;
+  --panel: #111418;
+  --panel-2: #151a20;
+  --text: #e8eaed;
+  --muted: #9aa0a6;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+
+  --accent: #4c8dff;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root{
+    --bg:#f6f7f9;
+    --panel:#ffffff;
+    --panel-2:#f2f3f5;
+    --text:#0f172a;
+    --muted:#475569;
+    --border: rgba(15,23,42,0.08);
+    --border-strong: rgba(15,23,42,0.12);
+    --accent:#2563eb;
+  }
+}
+
+/* Base reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Hide cursor when VM wants it */
+.guac-hide-cursor {
+  cursor: url('dot.gif'), default;
+}
+
+/* Turn focus states (kept names) */
+.focused {
+  box-shadow: 0 0 0 2px rgba(76,141,255,0.75), 0 0 18px rgba(76,141,255,0.35);
+}
+.waiting {
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.75), 0 0 18px rgba(245,158,11,0.35);
+}
+
+/* VM display wrapper */
+div#display-outer{
+  width: 100%;
+  display: block;
+  text-align: center;
+  margin-top: 8px; /* old css used 38px, now safer */
+}
+
+div#display{
+  display: inline-block;
+  max-width: 100%;
+}
+
+/* Censor */
+.censor{
+  filter: blur(15px);
+}
+.censor-fallback{
+  background-color: white;
+}
+
+/* Fullscreen warning overlay */
+#warning{
+  z-index: 1000;
+  position: fixed;
+  inset: 0;
+  text-align: center;
+}
+
+/* Table text tint */
+table{ color: var(--muted); }
+
+/* User list items (legacy hooks) */
+.user.list-group-item{
+  color: var(--text);
+  background: transparent;
+  border-color: transparent;
+}
+
+.current-user.list-group-item{
+  font-style: italic;
+}
+
+.admin.list-group-item,
+.message-pane > li > div > span.admin{
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.moderator.list-group-item,
+.message-pane > li > div > span.moderator{
+  font-weight: 700;
+  color: var(--success);
+}
+
+.dev.list-group-item,
+.message-pane > li > div > span.dev{
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Turn queue highlights */
+.waiting-turn.list-group-item{
+  background-color: rgba(245,158,11,0.12);
+  border-radius: var(--radius-sm);
+}
+.has-turn.list-group-item{
+  background-color: rgba(34,197,94,0.12);
+  border-radius: var(--radius-sm);
+}
+
+/* Chat pane wrapper (legacy selector) */
+.message-pane-wrapper{
+  border-radius: var(--radius);
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  padding: 4px 6px;
+}
+
+/* Message list */
+.message-pane{
+  padding-top: 2px;
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.message-pane li{
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.02);
+  padding: 2px 4px;
+}
+
+.message-pane li:hover{
+  background: var(--panel-2);
+}
+
+.message-pane small{
+  display: none;
+  font-size: 10px;
+  position: absolute;
+  background: var(--panel-2);
+  color: var(--muted);
+  text-align: center;
+  line-height: 20px;
+  margin: 4px 0;
+  padding: 0 6px;
+  right: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.message-pane li:hover small{
+  display: block;
+}
+
+.message-pane li>div{
+  overflow: auto;
+  padding: 2px 0;
+  line-height: 22px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  display: inline-block;
+}
+
+.message-pane li>div.server-message{
+  font-weight: 700;
+}
+
+/* Username in chat */
+.message-pane .username{
+  font-weight: 700;
+  white-space: nowrap;
+  display: block;
+  float: left;
+  overflow: hidden;
+  text-align: right;
+  color: var(--text);
+}
+
+.message-pane .spacer{
+  font-size: 14px;
+  margin-right: 5px;
+  color: var(--muted);
+}
+
+/* =========================
+   Guacamole On-Screen Keyboard
+   (mostly preserved, modern colors)
+   ========================= */
+.osk{
+  width: 100%;
+  position: relative;
+}
+
+.guac-keyboard{
+  display: inline-block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  cursor: default;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.guac-keyboard,
+.guac-keyboard *{
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.guac-keyboard .guac-keyboard-key-container{
+  display: inline-block;
+  margin: 0.05em;
+  position: relative;
+}
+
+.guac-keyboard .guac-keyboard-key{
+  position: absolute;
+  inset: 0;
+  background: #2a2f36;
+  border: 0.125em solid #3a414b;
+  border-radius: 0.35em;
+  color: white;
+  font-size: 40%;
+  font-weight: 300;
+  text-align: center;
+  white-space: pre;
+  text-shadow:
+    1px  1px 0 rgba(0,0,0,0.25),
+    1px -1px 0 rgba(0,0,0,0.25),
+   -1px  1px 0 rgba(0,0,0,0.25),
+   -1px -1px 0 rgba(0,0,0,0.25);
+}
+
+.guac-keyboard .guac-keyboard-key:hover{
+  cursor: pointer;
+  filter: brightness(1.08);
+}
+
+.guac-keyboard .guac-keyboard-key.highlight{
+  background: #3a414b;
+  border-color: #3a414b;
+}
+
+/* left aligned keycaps */
+.guac-keyboard .guac-keyboard-key-caps,
+.guac-keyboard .guac-keyboard-key-enter,
+.guac-keyboard .guac-keyboard-key-tab,
+.guac-keyboard .guac-keyboard-key-lalt,
+.guac-keyboard .guac-keyboard-key-ralt,
+.guac-keyboard .guac-keyboard-key-lctrl,
+.guac-keyboard .guac-keyboard-key-rctrl,
+.guac-keyboard .guac-keyboard-key-lshift,
+.guac-keyboard .guac-keyboard-key-rshift{
+  text-align: left;
+  padding-left: 0.75em;
+}
+
+/* active modifiers */
+.guac-keyboard.guac-keyboard-modifier-shift .guac-keyboard-key-rshift,
+.guac-keyboard.guac-keyboard-modifier-shift .guac-keyboard-key-lshift,
+.guac-keyboard.guac-keyboard-modifier-control .guac-keyboard-key-rctrl,
+.guac-keyboard.guac-keyboard-modifier-control .guac-keyboard-key-lctrl,
+.guac-keyboard.guac-keyboard-modifier-alt .guac-keyboard-key-ralt,
+.guac-keyboard.guac-keyboard-modifier-alt .guac-keyboard-key-lalt,
+.guac-keyboard.guac-keyboard-modifier-caps .guac-keyboard-key-caps,
+.guac-keyboard.guac-keyboard-modifier-super .guac-keyboard-key-super,
+.guac-keyboard.guac-keyboard-modifier-super .guac-keyboard-key-menu{
+  background: #6b5b00;
+  border-color: #eab308;
+}
+
+/* disabled/pressed */
+.guac-keyboard .guac-keyboard-key.guac-keyboard-disabled{
+  background: #7c8794;
+  border-color: #6c7682;
+  cursor: default;
+  opacity: 0.7;
+}
+
+.guac-keyboard .guac-keyboard-key.guac-keyboard-pressed{
+  background: #7f1d1d;
+  border-color: #ef4444;
+}
+
+.guac-keyboard .guac-keyboard-group{
+  line-height: 0;
+}
+
+.guac-keyboard .guac-keyboard-group.guac-keyboard-alpha,
+.guac-keyboard .guac-keyboard-group.guac-keyboard-movement{
+  display: inline-block;
+  text-align: center;
+  vertical-align: top;
+}
+
+.guac-keyboard .guac-keyboard-group.guac-keyboard-main{
+  display: flex;
+  align-items: stretch;
+  flex-direction: row;
+}
+
+.guac-keyboard .guac-keyboard-group.guac-keyboard-movement{
+  flex: 1 1 auto;
+}
+
+.guac-keyboard .guac-keyboard-gap{
+  display: inline-block;
+}
+
+/* modifier cap visibility rules - preserved */
+.guac-keyboard:not(.guac-keyboard-modifier-caps)
+.guac-keyboard-cap.guac-keyboard-requires-caps,
+.guac-keyboard:not(.guac-keyboard-modifier-shift)
+.guac-keyboard-cap.guac-keyboard-requires-shift,
+.guac-keyboard.guac-keyboard-modifier-shift
+.guac-keyboard-key.guac-keyboard-uses-shift
+.guac-keyboard-cap:not(.guac-keyboard-requires-shift),
+.guac-keyboard.guac-keyboard-modifier-caps
+.guac-keyboard-key.guac-keyboard-uses-caps
+.guac-keyboard-cap:not(.guac-keyboard-requires-caps){
+  display: none;
+}
+
+/* =========================
+   Spinner (kept selector)
+   ========================= */
+.sk-fading-circle{
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.sk-fading-circle .sk-circle{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.sk-fading-circle .sk-circle:before{
+  content: '';
+  display: block;
+  margin: 0 auto;
+  width: 15%;
+  height: 15%;
+  background-color: var(--muted);
+  border-radius: 100%;
+  animation: sk-circleFadeDelay 1.2s infinite ease-in-out both;
+}
+
+.sk-fading-circle .sk-circle2{ transform: rotate(30deg); }
+.sk-fading-circle .sk-circle3{ transform: rotate(60deg); }
+.sk-fading-circle .sk-circle4{ transform: rotate(90deg); }
+.sk-fading-circle .sk-circle5{ transform: rotate(120deg); }
+.sk-fading-circle .sk-circle6{ transform: rotate(150deg); }
+.sk-fading-circle .sk-circle7{ transform: rotate(180deg); }
+.sk-fading-circle .sk-circle8{ transform: rotate(210deg); }
+.sk-fading-circle .sk-circle9{ transform: rotate(240deg); }
+.sk-fading-circle .sk-circle10{ transform: rotate(270deg); }
+.sk-fading-circle .sk-circle11{ transform: rotate(300deg); }
+.sk-fading-circle .sk-circle12{ transform: rotate(330deg); }
+
+.sk-fading-circle .sk-circle2:before{ animation-delay: -1.1s; }
+.sk-fading-circle .sk-circle3:before{ animation-delay: -1s; }
+.sk-fading-circle .sk-circle4:before{ animation-delay: -0.9s; }
+.sk-fading-circle .sk-circle5:before{ animation-delay: -0.8s; }
+.sk-fading-circle .sk-circle6:before{ animation-delay: -0.7s; }
+.sk-fading-circle .sk-circle7:before{ animation-delay: -0.6s; }
+.sk-fading-circle .sk-circle8:before{ animation-delay: -0.5s; }
+.sk-fading-circle .sk-circle9:before{ animation-delay: -0.4s; }
+.sk-fading-circle .sk-circle10:before{ animation-delay: -0.3s; }
+.sk-fading-circle .sk-circle11:before{ animation-delay: -0.2s; }
+.sk-fading-circle .sk-circle12:before{ animation-delay: -0.1s; }
+
+@keyframes sk-circleFadeDelay{
+  0%, 39%, 100% { opacity: 0; }
+  40% { opacity: 1; }
+}
+
+/* VM list layout */
+#vm-list{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Small helpers */
+.badge-soft{
+  background: var(--panel-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.muted{ color: var(--muted); }
